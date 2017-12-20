@@ -1,0 +1,19 @@
+---
+- name: Check existing inspec version
+  shell: "inspec version | head -n1 | grep {{ inspec_version }}"
+  failed_when: false
+  changed_when: false
+  register: existing_inspec_version
+
+
+- name: Download and install inspec - rhel
+  yum:
+    name: https://packages.chef.io/files/stable/inspec/{{ inspec_version }}/el/7/inspec-{{ inspec_version }}-1.el7.x86_64.rpm
+    state: present
+  when: existing_inspec_version.rc != 0 and ansible_os_family == "RedHat"
+
+  
+- name: Download and install inspec - deb 
+  apt:
+    deb: https://packages.chef.io/files/stable/inspec/{{ inspec_version }}/ubuntu/16.04/inspec_{{ inspec_version }}-1_amd64.deb
+  when: existing_inspec_version.rc != 0 and ansible_os_family == "Debian"
