@@ -1,0 +1,12 @@
+---
+- name: Add the webupd8 APT repository key
+  tags:
+    - java
+    - java-webupd8
+  apt_key: id=EEA14886 keyserver='keyserver.ubuntu.com' state=present
+
+- name: Add the webupd8 APT repository
+  tags:
+    - java
+    - java-webupd8
+  apt_repository: repo="deb http://ppa.launchpad.net/webupd8team/java/ubuntu precise main" state=present

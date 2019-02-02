@@ -1,0 +1,6 @@
+---
+- include: openjdk.yml
+  when: java_pkg_type == "openjdk"
+
+- include: oracle.yml
+  when: java_pkg_type == "oracle"

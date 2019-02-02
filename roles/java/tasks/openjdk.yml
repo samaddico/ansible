@@ -1,0 +1,5 @@
+---
+- name: Install Openjdk Java
+  apt: name=openjdk-{{ java_version }}-jdk state=latest update_cache=yes
+
+- debug: var=java_version
