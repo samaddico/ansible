@@ -4,3 +4,6 @@ your_ip
 [webservers]
 your_ip  webserver_nginx_app_domain="web1.nginx.local"
 your_ip  webserver_nginx_app_domain="web2.nginx.local"
+
+
+[test]
