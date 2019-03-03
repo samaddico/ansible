@@ -1,0 +1,33 @@
+---
+- name: Check for Elasticsearch already installed
+  stat: path={{elasticsearch_home}}/lib/elasticsearch-{{elasticsearch_version}}.jar
+  register: version_exists
+  always_run: True
+
+- name: Download Elasticsearch deb
+  get_url: url={{elasticsearch_download_url}}/elasticsearch-{{elasticsearch_version}}.deb dest=/tmp/elasticsearch-{{elasticsearch_version}}.deb mode=0440
+  when: not version_exists.stat.exists
+
+- name: Uninstalling previous version if applicable
+  shell: dpkg --remove elasticsearch
+  when: not version_exists.stat.exists
+- file: path={{elasticsearch_home}} state=absent
+  when: not version_exists.stat.exists
+
+
+- name: Install Elasticsearch
+  apt:  deb=/tmp/elasticsearch-{{elasticsearch_version}}.deb dpkg_options=force-confnew
+  when: not version_exists.stat.exists
+- file:
+      path={{ elasticsearch_home }}
+      state=directory
+      owner={{ elasticsearch_user }}
+      group={{ elasticsearch_group }}
+      recurse=yes
+
+# - name: Setup passlib
+#   apt:  pkg=python-passlib
+#   when: elasticsearch_proxy_auth
+
+- service: name=elasticsearch state=started enabled=yes
+  tags: [elasticsearch]
