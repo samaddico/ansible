@@ -1,7 +1,7 @@
-Role Name
+HAProxy
 =========
 
-A brief description of the role goes here.
+An ansible role for provisoning a server with HAProxy and add neccessary configurations
 
 Requirements
 ------------
