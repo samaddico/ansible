@@ -1,0 +1,4 @@
+- name: Running Ad hoc shell commands
+  shell: "{{ item }}"
+  when: util_common_shell_details is defined
+  with_items: "{{ util_common_shell_details }}"

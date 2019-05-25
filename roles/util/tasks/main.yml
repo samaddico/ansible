@@ -1,0 +1,14 @@
+---
+# tasks file for util
+- include: filesystem.yml
+  when: util_filesystem_enable | default(false)
+
+- include: download.yml
+  when: util_download_enable | default(false)
+
+- include: logrorate.yml
+  when: util_logrorate_enable | default(false)
+
+
+- include: ntp.yml
+  when: util_ntp_enable | default(false)

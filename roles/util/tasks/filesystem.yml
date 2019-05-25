@@ -1,0 +1,170 @@
+---
+- name: Enforce Apt Cache update
+  shell: "apt-get update"
+  when: util_filesystem_aptupdate_enabled | default(false)
+
+- name: Installing Necessary Package
+  apt:
+    name="{{ item }}"
+    state=latest
+    update_cache=yes
+  with_items: "{{ util_filesystem_install_package_list | default({}) }}"
+  when: util_filesystem_install_package_list is defined
+
+- name: Installing Necessary Python pip Package
+  pip:
+    name="{{ item }}"
+  with_items: "{{ util_filesystem_install_pip_package_list | default({}) }}"
+  when: util_filesystem_install_pip_package_list is defined
+
+
+- name: Deleting directory with shell
+  shell: "rm -rf {{ item.path }}"
+  with_items: "{{ util_filesystem_delete_directory_shell_details | default({}) }}"
+  when: util_filesystem_delete_directory_shell_details is defined
+  ignore_errors: yes
+
+- name: Deleting directory with permission
+  file:
+    path="{{ item.path }}"
+    state=absent
+  with_items: "{{ util_filesystem_delete_directory_details | default({}) }}"
+  when: util_filesystem_delete_directory_details is defined
+  ignore_errors: yes
+
+- name: Creating directory with permission
+  file:
+    path="{{ item.path }}"
+    owner={{ item.owner | default('root') }}
+    group={{ item.group | default('root') }}
+    state=directory
+    mode={{ item.mode | default(0755) }}
+    recurse=yes
+  with_items: "{{ util_filesystem_create_directory_with_pem_details | default({}) }}"
+  when: util_filesystem_create_directory_with_pem_details is defined
+  ignore_errors: yes
+
+
+- name: Creating directory
+  file:
+    path="{{ item }}"
+    state=directory
+    mode=0755
+    recurse=yes
+  with_items: "{{ util_filesystem_create_directory_list | default({}) }}"
+  when: util_filesystem_create_directory_enabled | default(false)
+  ignore_errors: yes
+
+- name: Copy file from local to remote
+  copy:
+    src={{ item.source }}
+    dest={{ item.destination }}
+    directory_mode={{ item.directory_mode | default(true) }}
+    mode={{ item.mode | default('0755') }}
+    owner={{ item.owner | default('root') }}
+    group={{ item.group | default('root') }}
+  with_items: "{{ util_filesystem_copy_files_details }}"
+  when: util_filesystem_copy_files_details is defined
+
+
+#- name: Checking if there already a Symbolic link
+#  stat:
+#    path={{ item.linkdestination }}
+#  register: util_filesystem_symbolic_link_stat
+#  with_items: "{{ util_filesystem_symbolic_link_details }}"
+#  when: util_filesystem_symbolic_link_details is defined
+#
+#
+#- debug: var=util_filesystem_symbolic_link_stat
+
+#- name: Delete Symbolic Link if it exists
+#  file:
+#    path={{ item.linkdestination }}
+#    state=absent
+#  when: item.stat.islink == true
+#  with_items: util_filesystem_symbolic_link_stat.results
+
+- name: Creating Symbolic Link to folder(s)
+  file:
+    src={{ item.linksource }}
+    dest={{ item.linkdestination }}
+    state=link
+    force={{ item.force | default(true)}}
+  with_items: "{{ util_filesystem_symbolic_link_details }}"
+  when: util_filesystem_symbolic_link_details is defined
+
+- name:  Wget Download of items
+  get_url:
+    url="{{ item.url }}"
+    dest="{{ item.dest }}"
+    owner="{{ item.user | default('root') }}"
+    group="{{ item.usergroup | default('root') }}"
+  when: util_filesystem_simple_wget_download_details is defined
+  with_items: "{{ util_filesystem_simple_wget_download_details }}"
+
+- name: Mounting File System
+  mount:
+    name="{{ item.mount_point }}"
+    src="{{ item.source_point }}"
+    fstype="{{ item.filesystem }}"
+    opts="{{ item.options }}"
+    state=mounted
+  with_items: "{{ util_filesystem_mount_directory_list | default({}) }}"
+  when: util_filesystem_mount_directory_enabled | default(false)
+
+
+- name: Mounting File System Shell
+  shell: "mount -t nfs4 -o vers=4.1 {{ item.source_point }} {{ item.mount_point }}"
+  with_items: "{{ util_filesystem_mount_directory_list | default({}) }}"
+  when: util_filesystem_mount_directory_shell_enabled | default(false)
+
+- name: Setting File Permission
+  shell: "sudo chmod -R {{ item.mode }} {{ item.path }}"
+  when: util_filesystem_fileanddir_permission_details is defined
+  with_items: "{{ util_filesystem_fileanddir_permission_details | default({}) }}"
+
+- name: Unpackage files using Unarchive
+  unarchive:
+    src="{{ item.src }}"
+    dest="{{ item.dest }}"
+    owner={{ item.user | default('root')}}
+    group={{ item.usergroup | default('root') }}
+  ignore_errors: yes
+  with_items: " {{ util_filesystem_unarchive_details | default({}) }}"
+  when: util_filesystem_unarchive_details is defined
+
+- name: Unpackage files using zip Shell
+  shell: "/usr/bin/unzip -o {{ item.src }}  -d {{ item.dest }}"
+  with_items: "{{ util_filesystem_unarchive_details_shell | default({}) }}"
+  ignore_errors: yes
+  when: util_filesystem_unarchive_details_shell is defined
+
+
+- name: Unpackage files using  tar on Shell
+  shell:
+    cmd: "/bin/tar -xzvf {{ item.src }}"
+    chdir: "{{ item.dest }}"
+  with_items: "{{ util_filesystem_unarchive_details_tar_shell | default({}) }}"
+  ignore_errors: yes
+  when: util_filesystem_unarchive_details_tar_shell is defined
+
+- name: Uncompress Files using Gzip
+  shell:
+    cmd: "/bin/gzip -d {{ item.file_fullpath}}"
+    chdir: "{{ item.parent_dir }}"
+  with_items: "{{ util_filesystem_gzip_details | default({}) }}"
+  ignore_errors: yes
+  when: util_filesystem_gzip_details is defined
+
+- name: Setting File ownership
+  shell: "chown -R {{ item.user }}:{{ item.group }} {{ item.path }}/*"
+  when: util_filesystem_fileanddir_ownership_details is defined
+  with_items: "{{ util_filesystem_fileanddir_ownership_details | default({}) }}"
+
+- name: Setting System environment
+  lineinfile:
+    path: "{{ item.file }}"
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+  when: util_filesystem_set_system_env_details is defined
+  with_items: "{{ util_filesystem_set_system_env_details | default({}) }}"

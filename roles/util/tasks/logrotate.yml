@@ -1,0 +1,17 @@
+---
+- name: Create log Rotate file
+  template:
+    src={{ item.source_file | default("logrotate.yml.j2") }}
+    dest={{ item.destination_file }}
+    owner={{ item.owner | default('root') }}
+    group={{ item.group | default('root') }}
+    mode={{ item.mode | default(644) }}
+  when: util_logrotate_details is defined
+  with_items: "{{ util_logrotate_details }}"
+
+- name: Force execute logrotate
+  shell: "sudo /usr/sbin/logrotate --force {{ item.destination_file }}"
+  when:
+  - util_logrotate_details is defined
+  - util_logrotate_force_enabled | default(true)
+  with_items: "{{ util_logrotate_details }}"

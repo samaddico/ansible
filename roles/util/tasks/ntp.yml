@@ -1,0 +1,24 @@
+---
+- name: Installing NTP Server
+  apt:
+    name=ntp
+    update_cache=yes
+    state=latest
+  when: enable_ntp_install | default(true)
+
+
+- name: Stopping NTP server
+  service:
+    name=ntp
+    state=stopped
+  when: enable_ntp_stop | default(true)
+
+- name: Update NTP Date
+  shell: "sudo ntpdate pool.ntp.org"
+  when: enable_ntp_update | default(true)
+
+- name: Starting NTP server
+  service:
+    name=ntp
+    state=started
+  when: enable_ntp_start | default(true)

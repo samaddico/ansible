@@ -1,0 +1,20 @@
+---
+- name: Getting dependency online without credentials
+  get_url:
+    dest="{{ item.folder_path }}/{{ item.name }}"
+    url="{{ item.download_url }}"
+    owner="{{ item.owner | default('root') }}"
+    group="{{ item.group | default('root') }}"
+  with_items: "{{ util_download_geturl_nocreds_details | default({}) }}"
+  when:  util_download_geturl_nocreds_details is defined
+
+- name: Getting dependency online with credentials
+  get_url:
+    dest={{ item.folder_path }}/{{ item.name }}
+    url={{ item.download_url }}
+    url_password="{{ item.url_password }}"
+    url_username="{{ item.url_username }}"
+    owner="{{ item.owner | default('root') }}"
+    group="{{ item.group | default('root') }}"
+  when: util_download_geturl_details is defined
+  with_items: "{{ util_download_geturl_details | default({}) }}"

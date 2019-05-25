@@ -1,0 +1,10 @@
+{{ item.logfile_to_rotate }} {
+
+    {% if item.instructions is defined %}
+
+        {% for line in item.instructions %}
+            {{ line }}
+        {% endfor %}
+
+    {% endif %}
+}
