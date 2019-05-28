@@ -1,1 +1,1 @@
-Ansible Role for installing redis
+Ansible Role for installing redis and configuring
