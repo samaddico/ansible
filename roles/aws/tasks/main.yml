@@ -1,0 +1,22 @@
+---
+# tasks file for aws
+# Installing Boto for all use
+- name: Install Python Pip Utility
+  apt:
+    pkg=python-pip
+    state=latest
+    update_cache=true
+
+- name: Install Python Boto Librairy
+  pip:
+    name=boto
+    state=latest
+
+- name: Install AWS CLI Utility
+  pip:
+    name=awscli
+    state=latest
+  when: aws_install_awscli_enable|default(false)
+
+- include: s3.yml
+  when: aws_s3_enable|default(false)

@@ -1,0 +1,44 @@
+---
+- name: Checking S3 dest Folder
+  stat:
+    path={{ aws_s3_dest_path }}
+  register: aws_s3_path
+
+#- debug: var=aws_s3_dest_path
+#- debug: var=aws_pull_with_s3_awscli
+#- debug: var=aws_pull_with_s3_module
+#- debug: var=aws_pull_from_s3
+
+- name: Create S3 destination Folder
+  file:
+    path={{ aws_s3_dest_path }}
+    recurse=yes
+    state=directory
+  when: aws_s3_path.stat.exists == False
+
+
+- name: Pull Resources from S3 bucket
+  s3:
+    bucket={{ item.value.bucket }}
+    object={{ item.value.objpath }}
+    dest="{{ aws_s3_dest_path }}"
+    mode=get
+  with_dict: "{{ aws_pull_from_s3|default({}) }}"
+  when: aws_pull_with_s3_module | default(false)
+
+- name: Pull Resources from S3 bucket using aws cli
+  shell: aws s3 cp s3://{{ item.value.bucket }}/{{ item.value.objpath }} {{ aws_s3_dest_path }}/{{ item.value.obj }}
+  with_dict: "{{ aws_pull_from_s3|default({}) }}"
+  when: aws_pull_with_s3_awscli | default(false)
+
+
+
+# - name: Put Resources to S3 bucket
+#   s3:
+#     bucket= {{ item.bucket }}
+#     object= {{ item.object }}
+#     src= {{ item.src }}
+#     mode=put
+#   with_dict:
+#     - "{{ put_from_s3 }}"
+#   when: put_from_s3 is defined
